@@ -17,7 +17,6 @@ bool RayTracer::trace_reflected(const Ray& in, const HitInfo& in_hit, Ray& out, 
 	auto r = inWi;
 
 	out.direction = r-2 * dot(r, n) * n;
-
 	out.origin = in_hit.position;
 	out.tmin = 1e-5;
 	out.tmax = RT_DEFAULT_MAX;
