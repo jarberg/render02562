@@ -1,0 +1,4 @@
+C:/Users/Michael/Desktop/render02562/out/build/x64-Debug (default)/CMakeFiles/SOIL.dir
+C:/Users/Michael/Desktop/render02562/out/build/x64-Debug (default)/CMakeFiles/raytrace.dir
+C:/Users/Michael/Desktop/render02562/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+C:/Users/Michael/Desktop/render02562/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
