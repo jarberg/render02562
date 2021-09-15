@@ -105,7 +105,7 @@ bool RayTracer::trace_refracted(const Ray& in, const HitInfo& in_hit, Ray& out, 
   // Hints: (a) There is a refract function available in the OptiX math library.
   //        (b) Set out_hit.ray_ior and out_hit.trace_depth.
   //        (c) Remember that the function must handle total internal reflection.
-  R = 1;
+  R = 0.2f;
   return trace_refracted(in, in_hit, out, out_hit);
 }
 
