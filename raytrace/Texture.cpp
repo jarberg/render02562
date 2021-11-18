@@ -58,8 +58,16 @@ float4 Texture::sample_nearest(const float3& texcoord) const
   //
   // Hint: Remember to revert the vertical axis when finding the index
   //       into fdata.
-
-  return make_float4(0.0f);
+  const float& u = texcoord.x;
+  const float& v = texcoord.y;
+  float s = u - floor(u);
+  float t = v - floor(v);
+  float a = s * width;
+  float b = t * height;
+  unsigned int U = static_cast<unsigned int>(a + 0.5f) % width;
+  unsigned int V = static_cast<unsigned int>(b + 0.5f) % height;
+  unsigned int i = U + (height - V - 1) * width;
+  return fdata[i];
 }
 
 float4 Texture::sample_linear(const float3& texcoord) const
@@ -82,7 +90,27 @@ float4 Texture::sample_linear(const float3& texcoord) const
   // Hint: Use three lerp operations (or one bilerp) to perform the
   //       bilinear interpolation.
 
-  return sample_nearest(texcoord);
+  const float& u = texcoord.x;
+  const float& v = texcoord.y;
+  float s = u - floor(u);
+  float t = v - floor(v);
+  float a = s * width;
+  float b = t * height;
+
+  unsigned int U = static_cast<unsigned int>(a);
+  unsigned int V = static_cast<unsigned int>(b);
+  unsigned int Up1 = (U + 1) % width;
+  unsigned int Vp1 = (V + 1) % height;
+
+  float c1 = a - U;
+  float c2 = b - V;
+
+  unsigned int ivn = U + (height - V - 1) * width;
+  unsigned int ivo = Up1 + (height - V - 1) * width;
+  unsigned int ihn = U + (height - Vp1 - 1) * width;
+  unsigned int iho = Up1 + (height - Vp1 - 1) * width;
+
+  return bilerp(fdata[ivn], fdata[ivo], fdata[ihn], fdata[iho], c1, c2);
 }
 
 float4 Texture::look_up(unsigned int idx) const

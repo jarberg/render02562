@@ -30,10 +30,15 @@ float3 Glossy::shade(const Ray& r, HitInfo& hit, bool emit) const
   //
   // Hint: Use the function shade_new_ray(...) to pass a newly traced ray to
   //       the shader for the surface it hit.
+	if (hit.trace_depth >= max_depth)
+		return make_float3(0.0f);
 
-  //return Mirror::shade(r, hit, emit);
-  //return Transparent::shade(r, hit, emit);
-	//return Phong::shade(r, hit, emit);
-	return Transparent::shade(r, hit, emit) +Phong::shade(r, hit, emit);
-	//return  Mirror::shade(r, hit, emit)+ Phong::shade(r, hit, emit);
+	float R;
+	Ray reflected, refracted;
+	HitInfo hit_reflected, hit_refracted;
+	tracer->trace_reflected(r, hit, reflected, hit_reflected);
+	tracer->trace_refracted(r, hit, refracted, hit_refracted, R);
+	auto result =  R * shade_new_ray(reflected, hit_reflected) + (1.0f - R) * shade_new_ray(refracted, hit_refracted);
+
+	return result + R*Phong::shade(r, hit, emit);
 }

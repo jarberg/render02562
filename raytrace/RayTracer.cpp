@@ -14,7 +14,7 @@ bool RayTracer::trace_reflected(const Ray& in, const HitInfo& in_hit, Ray& out, 
 {
 	const auto n = in_hit.shading_normal;
 	const auto inWi = normalize(in.direction);
-	auto r = inWi;
+	auto r = -inWi;
 
 	out.direction = r-2 * dot(r, n) * n;
 	out.origin = in_hit.position;
@@ -64,11 +64,9 @@ bool RayTracer::trace_refracted(const Ray& in, const HitInfo& in_hit, Ray& out, 
 	out_hit.ray_ior = get_ior_out(in, in_hit, normal);
 	auto ior_ratio = in_hit.ray_ior / out_hit.ray_ior;
 
-	auto wi = normalize(in.direction - normal);
-	
+	auto wi = normalize(-in.direction);
 	auto cosÿi = dot(wi, normal);
 	auto sinÿi = sqrt(1 - cosÿi * cosÿi);
-
 	auto cosÿt = sqrt(1 - (ior_ratio * ior_ratio) * (1 - cosÿi * cosÿi));
 	auto sinÿt = ior_ratio * sinÿi;
 		
@@ -83,7 +81,6 @@ bool RayTracer::trace_refracted(const Ray& in, const HitInfo& in_hit, Ray& out, 
 	out.tmin = 1e-4;
 	out.tmax = RT_DEFAULT_MAX;
 	out_hit.trace_depth = in_hit.trace_depth + 1;
-	
 	trace_to_closest(out, out_hit);
 
 	return out_hit.has_hit;
@@ -105,7 +102,7 @@ bool RayTracer::trace_refracted(const Ray& in, const HitInfo& in_hit, Ray& out, 
   // Hints: (a) There is a refract function available in the OptiX math library.
   //        (b) Set out_hit.ray_ior and out_hit.trace_depth.
   //        (c) Remember that the function must handle total internal reflection.
-  R = 0.2f;
+  R = 0.1f;
   return trace_refracted(in, in_hit, out, out_hit);
 }
 

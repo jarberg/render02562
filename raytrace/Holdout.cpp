@@ -9,9 +9,21 @@
 
 using namespace optix;
 
-float3 Holdout::shade(const Ray& r, HitInfo& hit, bool emit) const
-{
+float3 Holdout::shade(const Ray& r, HitInfo& hit, bool emit) const{
   float ambient = 0.0f;
+  Ray sr = Ray();
+  HitInfo shit = HitInfo();
+  sr.origin = hit.position;
+  for (auto i = 0; i < samples; i++) {
+	  shit.has_hit = false;
+	  sr.direction = sample_cosine_weighted(hit.shading_normal);
+	  sr.tmin = 1e-4;
+	  sr.tmax = RT_DEFAULT_MAX;
+	  if (!tracer->trace_to_closest(sr, shit)) {
+		  ambient += 1;
+	  }
+  }
+  return (ambient * tracer->get_background(r.direction)) / samples;
 
   // Implement ambient occlusion here.
   //
@@ -29,5 +41,5 @@ float3 Holdout::shade(const Ray& r, HitInfo& hit, bool emit) const
   //       a new ray in a direction sampled on the hemisphere around the
   //       surface normal according to the function sample_cosine_weighted(...).
 
-  return ambient*tracer->get_background(r.direction);
+
 }

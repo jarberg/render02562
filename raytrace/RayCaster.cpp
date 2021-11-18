@@ -14,18 +14,38 @@ using namespace optix;
 
 float3 RayCaster::compute_pixel(unsigned int x, unsigned int y) const
 {
-    auto imageCoords = lower_left + make_float2(x, y)* win_to_ip;
-    auto ray = scene->get_camera()->get_ray(imageCoords);
+    //oldr
+    //auto imageCoords = lower_left + make_float2(x, y)* win_to_ip;
+    //auto ray = scene->get_camera()->get_ray(imageCoords);
     
-    HitInfo hitInfo; 
-    scene->closest_hit(ray, hitInfo);
+    //HitInfo hitInfo; 
+    //scene->closest_hit(ray, hitInfo);
 
-    if(hitInfo.has_hit) {
-        return scene->get_shader(hitInfo)->shade(ray, hitInfo);
+    //if(hitInfo.has_hit) {
+    //    return scene->get_shader(hitInfo)->shade(ray, hitInfo);
+    //}
+
+    //return RayCaster::get_background(ray.direction);
+    
+    auto coor = win_to_ip * make_float2(x, y) + lower_left;
+
+    auto stack = make_float3(0);
+    HitInfo subHit;
+    Ray subRay;
+    for (size_t i = 0; i < jitter.size(); i++){
+        subHit = HitInfo();
+        subRay = scene->get_camera()->get_ray(coor + jitter[i]);
+        subRay.tmin = 1e-4;
+        subRay.tmax = RT_DEFAULT_MAX;
+        scene->closest_hit(subRay, subHit);
+        if (subHit.has_hit) {
+            stack += get_shader(subHit)->shade(subRay, subHit);
+        }
+        else {
+            stack += get_background(subRay.direction);
+        }
     }
-
-    return RayCaster::get_background(ray.direction);
-    
+    return  stack / (subdivs * subdivs);;
 
   // Use the scene and its camera
   // to cast a ray that computes the color of the pixel at index (x, y).
@@ -70,8 +90,7 @@ void RayCaster::decrement_pixel_subdivs()
   cout << "Rays per pixel: " << subdivs*subdivs << endl;
 }
 
-void RayCaster::compute_jitters()
-{
+void RayCaster::compute_jitters(){
   float aspect = width/static_cast<float>(height);
   win_to_ip.x = win_to_ip.y = 1.0f/static_cast<float>(height);
   lower_left = (win_to_ip - make_float2(aspect, 1.0f))*0.5f;

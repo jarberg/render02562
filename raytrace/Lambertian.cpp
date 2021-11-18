@@ -13,11 +13,7 @@ using namespace optix;
 #define M_1_PIf 0.31830988618379067154
 #endif
 
-float3 Lambertian::shade(const Ray& r, HitInfo& hit, bool emit) const
-{
-  float3 rho_d = get_diffuse(hit);
-  float3 result = make_float3(0.0f);
-  
+float3 Lambertian::shade(const Ray& r, HitInfo& hit, bool emit) const{
   // Implement Lambertian reflection here.
   //
   // Input:  r          (the ray that hit the material)
@@ -33,24 +29,24 @@ float3 Lambertian::shade(const Ray& r, HitInfo& hit, bool emit) const
   // rho_d              (difuse reflectance of the material)
   //
   // Hint: Call the sample function associated with each light in the scene.
-  float3 pos = hit.position;
-  float3 dir;
 
-  for each (auto light in lights){
-      float3 L = make_float3(0.0);
-      float3 accum = make_float3(0.0);
-      auto samplers = light->get_no_of_samples();
-      bool notOccluded = light->sample(pos, dir, L);
-      if (notOccluded) {
-        for (int x = 0; x < samplers; ++x){ 
-              auto angle = dot(hit.shading_normal, dir);
-              if(angle>0){
-                  accum += L*angle;
-              }
-              accum /= samplers;
-          }
-        result += accum;
-      }
+  float3 rho_d = get_diffuse(hit);
+  float3 result = make_float3(0.0f);
+
+  for each (Light *light in lights) {
+	  auto Li = make_float3(0.0f);
+	  auto accum = make_float3(0);
+	  auto dir = normalize(hit.shading_normal);
+	  for (size_t i = 0; i < light->get_no_of_samples(); i++) {
+		  auto notOccluded = light->sample(hit.position, dir, Li);
+		  auto cosine = dot(hit.shading_normal, dir);
+		  if (notOccluded) {
+			  if (cosine > 0) {
+				  accum += Li * cosine;
+			  }
+		  }
+	  }
+	  result += accum / light->get_no_of_samples();
   }
-  return (rho_d*M_1_PIf)*result + Emission::shade(r, hit, emit);
+  return result * rho_d / M_PIf + Emission::shade(r, hit, emit);
 }

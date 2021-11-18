@@ -13,6 +13,25 @@ using namespace optix;
 
 bool Directional::sample(const float3& pos, float3& dir, float3& L) const
 {
+	L = make_float3(0.0f);
+
+	dir = -light_dir;
+	dir = normalize(dir);
+
+	if (shadows) {
+		// Test if the geometry is in shadow from the point light
+		float err = 0.0001;
+		auto ray = Ray(pos, dir, 0, err, RT_DEFAULT_MAX);
+		HitInfo hitInfo;
+		tracer->trace_to_any(ray, hitInfo);
+
+		if (hitInfo.has_hit)
+			return false;
+	}
+
+	float visibility = 1;
+	L = visibility * emission;
+	return true;
   // Compute output and return value given the following information.
   //
   // Input:  pos (the position of the geometry in the scene)

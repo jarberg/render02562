@@ -58,10 +58,10 @@ RenderEngine::RenderEngine()
     light_pow(optix::make_float3(M_PIf)),                    // Power of the default light
     light_dir(optix::make_float3(-1.0f)),                    // Direction of the default light
     default_light(&tracer, light_pow, light_dir),            // Construct default light
-    use_default_light(true),                                 // Choose whether to use the default light or not
+    use_default_light(false),                                 // Choose whether to use the default light or not
     shadows_on(true),
     background(optix::make_float3(0.1f, 0.3f, 0.6f)),        // Background color
-    bgtex_filename(""),                                      // Background texture file name
+    bgtex_filename("../models/hdri.png"),                    // Background texture file name
     current_shader(0),
     lambertian(scene.get_lights()),
     photon_caustics(&tracer, scene.get_lights(), 1.0f, 50),  // Max distance and number of photons to search for
@@ -121,7 +121,7 @@ void RenderEngine::load_files(int argc, char** argv)
   else
   {
     // Insert default scene
-    scene.add_plane(make_float3(0.0f, 0.0f, 0.0f), make_float3(0.0f, 1.0f, 0.0f), "../models/default_scene.mtl", 1, 0.2f); // last argument is texture scale
+    scene.add_plane(make_float3(0.0f, 0.0f, 0.0f), make_float3(0.0f, 1.0f, 0.0f), "../models/default_scene.mtl", 1, 10.0f); // last argument is texture scale
     scene.add_sphere(make_float3(0.0f, 0.5f, 0.0f), 0.3f, "../models/default_scene.mtl", 2);
     scene.add_triangle(make_float3(-0.2f, 0.1f, 0.9f), make_float3(0.2f, 0.1f, 0.9f), make_float3(-0.2f, 0.1f, -0.1f), "../models/default_scene.mtl", 3);
     scene.add_light(new PointLight(&tracer, make_float3(M_PIf), make_float3(0.0f, 1.0f, 0.0f)));
@@ -187,10 +187,10 @@ void RenderEngine::init_tracer()
     else
       bgtex.load(bgtex_filename.c_str());
     tracer.set_background(&bgtex);
-    //PanoramicLight* envlight = new PanoramicLight(&tracer, bgtex, 1);
-    //cout << "Adding light source: " << envlight->describe() << endl;
-    //scene.add_light(envlight);
-    //scene.add_plane(make_float3(0.0f), make_float3(0.0f, 1.0f, 0.0f), "../models/plane.mtl", 4); // holdout plane
+    PanoramicLight* envlight = new PanoramicLight(&tracer, bgtex, 1);
+    cout << "Adding light source: " << envlight->describe() << endl;
+    scene.add_light(envlight);
+    scene.add_plane(make_float3(0.0f), make_float3(0.0f, 1.0f, 0.0f), "../models/plane.mtl", 4); // holdout plane
   }
 
   // Set shaders
@@ -686,17 +686,17 @@ void RenderEngine::keyboard(unsigned char key, int x, int y)
 
 void RenderEngine::mouse(int btn, int state, int x, int y)
 {
-  if(state == GLUT_DOWN)
-  {
-    if(btn == GLUT_LEFT_BUTTON)
-      render_engine.get_view_controller()->grab_ball(ORBIT_ACTION, make_uint2(x, y));
-    else if(btn == GLUT_MIDDLE_BUTTON)
-      render_engine.get_view_controller()->grab_ball(DOLLY_ACTION, make_uint2(x, y));
-    else if(btn == GLUT_RIGHT_BUTTON)
-      render_engine.get_view_controller()->grab_ball(PAN_ACTION, make_uint2(x, y));
-  }
-  else if(state == GLUT_UP)
-    render_engine.get_view_controller()->release_ball();
+    if (state == GLUT_DOWN)
+    {
+        if (btn == GLUT_LEFT_BUTTON)
+            render_engine.get_view_controller()->grab_ball(ORBIT_ACTION, make_uint2(x, y));
+        else if (btn == GLUT_MIDDLE_BUTTON)
+            render_engine.get_view_controller()->grab_ball(DOLLY_ACTION, make_uint2(x, y));
+        else if (btn == GLUT_RIGHT_BUTTON)
+            render_engine.get_view_controller()->grab_ball(PAN_ACTION, make_uint2(x, y));
+    }
+    else if (state == GLUT_UP)
+        render_engine.get_view_controller()->release_ball();
 
   render_engine.set_mouse_state(state);
 }

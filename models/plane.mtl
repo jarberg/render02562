@@ -5,11 +5,11 @@ Ks 0.0 0.0 0.0
 illum 1
 
 newmtl grass
-Ka 0.0 0.0 0.0
+Ka 0.5 0.5 0.5
 Kd 0.1 0.7 0.1
 Ks 0.0 0.0 0.0
 illum 1
-map_Kd grass.jpg
+map_Kd myTex.jpg
 
 newmtl seawater
 Ns 1000.0

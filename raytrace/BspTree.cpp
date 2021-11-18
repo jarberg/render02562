@@ -14,19 +14,16 @@
 using namespace std;
 using namespace optix;
 
-namespace
-{
+namespace{
   const float f_eps = 1.0e-6f;  
   const float d_eps = 1.0e-12f;
 }
 
-BspTree::~BspTree()
-{
+BspTree::~BspTree(){
   delete_node(root);
 }
 
-void BspTree::init(const vector<Object3D*>& geometry, const std::vector<const Plane*>& scene_planes)
-{
+void BspTree::init(const vector<Object3D*>& geometry, const std::vector<const Plane*>& scene_planes){
   root = new BspNode;
   Accelerator::init(geometry, scene_planes);
   for(unsigned int i = 0; i < geometry.size(); ++i)
@@ -35,24 +32,32 @@ void BspTree::init(const vector<Object3D*>& geometry, const std::vector<const Pl
   subdivide_node(*root, bbox, 0, objects);
 }
 
-bool BspTree::closest_hit(Ray& r, HitInfo& hit) const
-{
+bool BspTree::closest_hit(Ray& r, HitInfo& hit) const{
   // Call closest_plane(...) and intersect_node(...) instead of
   // Accelerator::closest_hit(...) to use the BSP tree.
   // Using intersect_min_max(...) before intersect_node(...) gives
   // a good speed-up in many scenes.
-
-  return Accelerator::closest_hit(r, hit);
+    closest_plane(r, hit);
+    if(intersect_min_max(r)) {
+        intersect_node(r, hit, *root);
+    }
+    
+    return hit.has_hit;
+    //return Accelerator::closest_hit(r, hit);
 }
 
-bool BspTree::any_hit(Ray& r, HitInfo& hit) const
-{
+bool BspTree::any_hit(Ray& r, HitInfo& hit) const{
   // Call any_plane(...) and intersect_node(...) instead of
   // Accelerator::any_hit(...) to use the BSP tree.
   // Using intersect_min_max(...) before intersect_node(...) gives
   // a good speed-up in many scenes.
   
-  return Accelerator::any_hit(r, hit);
+    if (!any_plane(r, hit) && !intersect_min_max(r)) {
+        return false;
+    }
+    return intersect_node(r, hit, *root);
+
+  //return Accelerator::any_hit(r, hit);
 }
 
 bool BspTree::intersect_min_max(Ray& r) const
@@ -70,8 +75,7 @@ bool BspTree::intersect_min_max(Ray& r) const
   return true;
 }
 
-void BspTree::subdivide_node(BspNode& node, Aabb& bbox, unsigned int level, vector<AccObj*>& objects) 
-{
+void BspTree::subdivide_node(BspNode& node, Aabb& bbox, unsigned int level, vector<AccObj*>& objects) {
   const int TESTS = 4;
 
   // This is a recursive function building the BSP tree.
@@ -102,8 +106,7 @@ void BspTree::subdivide_node(BspNode& node, Aabb& bbox, unsigned int level, vect
   //       to estimate the cost of a particular plane position. After all the
   //       tests, use the plane position with minimum cost.
 
-  if(objects.size() <= max_objects || level == max_level)
-  {
+  if(objects.size() <= max_objects || level == max_level){
     node.axis_leaf = bsp_leaf; // Means that this is a leaf
     node.id = tree_objects.size();
     node.count = objects.size();

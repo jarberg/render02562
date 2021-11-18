@@ -38,5 +38,23 @@ float3 MCGlossy::shade(const Ray& r, HitInfo& hit, bool emit) const
   // Hint: Use the function shade_new_ray(...) to pass a newly traced ray to
   //       the shader for the surface it hit.
 
+    auto reflec_prop = (rho_d.x, rho_d.y, rho_d.z) / 3;
+    
+    if (reflec_prop <= mt_random_half_open()) {
+        auto newRay = Ray();
+        auto newHit = HitInfo();
+
+        newRay.origin = hit.position;
+        newRay.direction = sample_cosine_weighted(hit.shading_normal);
+        newRay.tmin = 1e-4;
+        newRay.tmax = RT_DEFAULT_MAX;
+
+        newHit.trace_depth = hit.trace_depth + 1;
+
+        tracer->trace_to_closest(newRay, newHit);
+
+        auto f = shade_new_ray(newRay, newHit, false);
+        result = rho_d * f;
+    }
   return result + Phong::shade(r, hit, emit);
 }

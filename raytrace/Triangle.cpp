@@ -34,7 +34,7 @@ bool intersect_triangle(const Ray& ray,
     v = dot(aa, e2) / det;
     w = dot(aa, e1) / det;
 
-  return v >= 0 && w >= 0 && (v + w) <= 1;;
+  return v >= 0 && w >= 0 && (v + w) <= 1 && t>= ray.tmin && t <= ray.tmax ;
 }
 
 
